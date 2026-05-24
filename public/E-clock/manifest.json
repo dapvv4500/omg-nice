@@ -1,0 +1,22 @@
+{
+  "name": "Degistal Clock102",
+  "short_name": "clock",
+  "start_url": "../E-clock/clock102.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#11827",
+  "description": "Degistal Clock102 offline -- V05.05.2026",
+  "icons": [
+    {
+      "src": "clock192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "clock512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
+

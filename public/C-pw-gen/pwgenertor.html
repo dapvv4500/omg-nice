@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="theme-color" content="#111827">
+  <meta name="viewport"    content="width=device-width, initial-scale=1.0" />
+  <title>genertorpw</title>
+  <link rel="icon"  href="../C-pw-gen/favicon.png" type="image/x-icon">
+  <link rel="manifest" href="../C-pw-gen/manifest.json">
+
+  <style>
+    body  { margin:12; min-height:100vh; display:grid; place-items:center; font-family:system-ui, sans-serif; background:#aaaaaa; color:#e5e7eb; }
+    .card { width:100%; max-width:420px; background:#111222; border:1px solid #1f2937; border-radius:16px; padding:20px 22px; }
+    h1    { margin:0 0 8px; font-size:1.4rem; }
+    p     { margin:0 0 16px; color:#9ca3af; }
+    .row    { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; }
+    .output { width:100%; padding:12px 14px; background:#0b1220; border:1px solid #243244; border-radius:10px; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:1rem; color:#e5e7eb; }
+    .btn    { padding:10px 14px; border-radius:10px; border:1px solid #243244; background:#1e293b; color:#e5e7eb; cursor:pointer; }
+    .btn:hover { background:#666666; }
+    .controls  { display:grid; gap:12px; margin-top:16px; }
+    .control   { display:grid; grid-template-columns:1fr auto; align-items:center; gap:12px; }
+    .toggle    { display:flex; gap:10px; flex-wrap:wrap; }
+    .footer    { display:flex; gap:10px; margin-top:16px; }
+    .meter     { height:8px; border-radius:6px; background:#0b1220; border:1px solid #243244; overflow:hidden; margin-top:10px; }
+    .bar       { height:100%; width:0%; background:#ef4444; transition:width 0.2s ease, background 0.2s ease; }
+    .small     { font-size:0.85rem; color:#9ca3af; margin-top:6px; }
+    #POSadmin   { color:#ffffff; text-align:center; }
+    #genertorpw { color:#5678a5; font-size:small; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h3 id="" title="for XXX-Pos.xlsm">Password generator</h3>
+    <p><span class="small" style="color: rgb(91, 91, 107);">(Dapvv4500-v24.11.2025-4rev3lcase2put)</span> 
+      Can install as standalone (offline) App from browser.<br>
+      Generate strong passwords with the character sets you choose. Copy with one click...
+      <span id="POSadmin">...</span></p>
+
+    <div class="row">
+      <input id="password" name="password" class="output" type="text" readonly placeholder="Your password will appear here..." />
+      <button id="copyBtn" class="btn">Copy</button>
+      <label for="password"></label>
+    </div>
+
+    <div class="meter"><div id="strengthBar" class="bar"></div></div>
+    <div id="strengthText" class="small">Strength: —</div>
+
+    <div class="controls">
+      <div class="control">
+        <label for="length">Length</label>
+        <input id="length" type="number" min="8" max="128" value="16" />
+      </div>
+
+      <div class="control">
+        Character sets
+        <div class="toggle">
+          <label><input id="useLower" type="checkbox" checked /> a–z</label>
+          <label><input id="useUpper" type="checkbox" checked /> A–Z</label>
+          <label><input id="useNums" type="checkbox" checked /> 0–9</label>
+          <label><input id="useSyms" type="checkbox" /> Symbols</label>
+        </div>
+      </div>
+
+      <div class="control">
+        Exclude similar
+        <div class="toggle">
+          <label><input id="excludeSimilar" type="checkbox" /> (0 O o, 1 l I, S 5, etc.)</label>
+        </div>
+      </div>
+
+      <div class="control">
+        No repeats
+        <div class="toggle">
+          <label><input id="noRepeats" type="checkbox" /> Avoid repeating characters</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <button id="generateBtn" class="btn">Generate</button>
+      <button id="resetBtn" class="btn">Reset</button>
+    </div>
+
+    <div class="small">Tip: Use at least 12-16 characters and include multiple sets for stronger passwords.</div>
+    <div id="genertorpw">...</div>
+  </div>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("../C-pw-gen/pwgen_sw.js")
+        .then(() => console.log("✅ Service Worker registered: pwgen_sw.js"))
+        .catch((err) => console.log("(CORS none) ❌ SW registration failed :{{", err, '}}\n'));
+    }
+
+    const el = (id) => document.getElementById(id);
+    const CHARS = {
+      lower: "abcdefghijklmnopqrstuvwxyz",
+      upper: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+      nums:  "0123456789",
+      syms:  "!@#$%^&*()-_=+[]{};:,.<>/?|~"
+    };
+    const SIMILAR = new Set(["0","O","o","1","l","I","S","5","2","Z","B","8"]);
+
+    //=====================================//
+    console.log( '-------' ); //POSadmin
+    const POSadmin = document.getElementById('POSadmin');
+    const genertorpw = document.getElementById('genertorpw');
+    let today = new Date();
+    let thepw = ''; lastpw = '';
+
+    for ( let ii=-10; ii<10; ii++) {
+      const nextday = new Date( today ); nextday.setDate( today.getDate() + ii ) ;
+      const strdate = new Date(`${nextday.getFullYear()}-${nextday.getMonth()+1}-${nextday.getDate()}`);
+      // gen pw
+      const datepw  = gentorpw(strdate);
+      if (datepw !== "") {
+        thepw = thepw + ` <span class='date-make-up' id=${datepw}>${datepw}</span>`;
+        genertorpw.innerHTML = thepw;
+      }
+      if (today.getDate() == nextday.getDate()) {
+        el("password").value = datepw;
+        console.log(ii,nextday.getDate(),today.getDate(),datepw );
+      }
+      // last pw
+      if (ii >= -2  && lastpw === '') { 
+        const temp = gentorpw(strdate);
+        if (temp !== "") lastpw = temp;
+      }
+    }
+    // add click
+    document.querySelectorAll('.date-make-up').forEach(dmkp => {
+      dmkp.addEventListener('click', (ev) => {
+      POSadmin.textContent = ev.target.textContent ; 
+      el("password").value = POSadmin.textContent;
+      //console.log(ev.target.innerHTML);
+    });
+  });
+    // end
+    console.log('----- 24Nov2025 -----',lastpw);
+    POSadmin.textContent = lastpw;
+
+    //======================================//
+    function gentorpw( xdate ){
+      const mArr = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const reverseString = (pstr) => [...pstr].reverse().join("");
+      //
+      const dd3 = xdate.getFullYear()-2000;
+      const dd2 = xdate.getMonth();
+      //let   dd1 = xdate.getDate();
+      let   dd1 = String(xdate.getDate()).padStart(2, '0');
+      let  pstr = `${dd1}${mArr[dd2]}${dd3}`;
+      //
+        if (dd1 % 2 !== 0) 
+            { pstr = "";    return pstr; }
+      //
+        if (dd1 % 3 == 0) 
+            { pstr = pstr.toLowerCase(); }
+      //
+        if (dd1 % 4 == 0) 
+            { pstr = reverseString(pstr); }
+      //
+        return pstr
+    }
+
+    // Secure random integer [0, max)
+    function cryptoRand(max) {
+      // Use Web Crypto if available (requires HTTPS or localhost)
+      if (window.crypto && window.crypto.getRandomValues) {
+        const arr = new Uint32Array(1);
+        window.crypto.getRandomValues(arr);
+        return arr[0] % max;
+      }
+      // Fallback for non-secure contexts
+      return Math.floor(Math.random() * max);
+    }
+
+    function buildPool(opts) {
+      let pool = "";
+      if (opts.lower) pool += CHARS.lower;
+      if (opts.upper) pool += CHARS.upper;
+      if (opts.nums)  pool += CHARS.nums;
+      if (opts.syms)  pool += CHARS.syms;
+      if (opts.excludeSimilar) {
+        pool = [...pool].filter(c => !SIMILAR.has(c)).join("");
+      }
+      return pool;
+    }
+
+    function generatePassword(len, pool, opts) {
+      if (!pool.length || len < 1) return "";
+
+      const mustSets = [];
+      if (opts.lower) mustSets.push(CHARS.lower);
+      if (opts.upper) mustSets.push(CHARS.upper);
+      if (opts.nums)  mustSets.push(CHARS.nums);
+      if (opts.syms)  mustSets.push(CHARS.syms);
+
+      const chosen = [];
+
+      // Ensure at least one char from each selected set
+      for (const set of mustSets) {
+        let c = set[cryptoRand(set.length)];
+        if (opts.excludeSimilar) {
+          // retry a few times if similar
+          let attempts = 0;
+          while (SIMILAR.has(c) && attempts++ < 10) c = set[cryptoRand(set.length)];
+          if (SIMILAR.has(c)) continue; // if still similar, skip
+        }
+        if (opts.noRepeats && chosen.includes(c)) {
+          // pick a different one
+          let tries = 0;
+          while (tries++ < 10) {
+            const alt = set[cryptoRand(set.length)];
+            if (!opts.excludeSimilar || !SIMILAR.has(alt)) {
+              if (!chosen.includes(alt)) { c = alt; break; }
+            }
+          }
+        }
+        chosen.push(c);
+      }
+
+      // Fill remaining length from full pool
+      while (chosen.length < len) {
+        const c = pool[cryptoRand(pool.length)];
+        if (opts.noRepeats && chosen.includes(c)) continue;
+        chosen.push(c);
+      }
+
+      // Shuffle using Fisher–Yates with crypto
+      for (let i = chosen.length - 1; i > 0; i--) {
+        const j = cryptoRand(i + 1);
+        [chosen[i], chosen[j]] = [chosen[j], chosen[i]];
+      }
+
+      return chosen.join("");
+    }
+
+    function estimateStrength(pw, opts) {
+      if (!pw) return { score: 0, label: "Too weak", color: "#ef4444", entropy: 0 };
+      const charsetSize =
+        (opts.lower ? CHARS.lower.length : 0) +
+        (opts.upper ? CHARS.upper.length : 0) +
+        (opts.nums  ? CHARS.nums.length  : 0) +
+        (opts.syms  ? CHARS.syms.length  : 0);
+
+      const effective = Math.max(1, charsetSize - (opts.excludeSimilar ? SIMILAR.size : 0));
+      const entropy = pw.length * Math.log2(effective);
+
+      let label = "Weak", score = 25, color = "#ef4444";
+      if (entropy >= 60) { label = "Strong"; score = 75; color = "#22c55e"; }
+      if (entropy >= 80) { label = "Very strong"; score = 95; color = "#16a34a"; }
+      if (entropy >= 100){ label = "Excellent"; score = 100; color = "#0ea5e9"; }
+      return { score, label, color, entropy: Math.round(entropy) };
+    }
+
+    function updateStrengthUI(pw, opts) {
+      const { score, label, color, entropy } = estimateStrength(pw, opts);
+      el("strengthBar").style.width = score + "%";
+      el("strengthBar").style.background = color;
+      el("strengthText").textContent = `Strength: ${label} (${entropy} bits)`;
+    }
+
+    function readOpts() {
+      return {
+        lower: el("useLower").checked,
+        upper: el("useUpper").checked,
+        nums:  el("useNums").checked,
+        syms:  el("useSyms").checked,
+        excludeSimilar: el("excludeSimilar").checked,
+        noRepeats: el("noRepeats").checked
+      };
+    }
+
+    function generate() {
+      const len = Math.min(128, Math.max(8, Number(el("length").value) || 16));
+      const opts = readOpts();
+      const pool = buildPool(opts);
+
+      if (!pool.length) {
+        el("password").value = "";
+        updateStrengthUI("", opts);
+        alert("Select at least one character set.");
+        return;
+      }
+      if (opts.noRepeats && len > pool.length) {
+        alert("Length exceeds unique characters available with 'No repeats'. Reduce length or allow repeats.");
+        return;
+      }
+
+      const pw = generatePassword(len, pool, opts);
+      el("password").value = pw;
+      updateStrengthUI(pw, opts);
+    }
+
+    function copy() {
+      const pw = el("password").value;
+      if (!pw) return;
+      // Modern clipboard API
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(pw).then(() => toastCopy());
+      } else {
+        // Fallback
+        el("password").select();
+        document.execCommand("copy");
+        toastCopy();
+      }
+    }
+
+    function toastCopy() {
+      const btn = el("copyBtn");
+      const prev = btn.textContent;
+      btn.textContent = "Copied!";
+      setTimeout(() => (btn.textContent = prev), 900);
+    }
+
+    // Events
+    el("generateBtn").addEventListener("click", generate);
+    el("copyBtn").addEventListener("click", copy);
+    el("resetBtn").addEventListener("click", () => {
+      el("length").value = 16;
+      el("useLower").checked  = true;
+      el("useUpper").checked  = true;
+      el("useNums").checked   = true;
+      el("useSyms").checked   = false;
+      el("noRepeats").checked = false;
+      el("excludeSimilar").checked  = false;
+      el("password").value          = "";
+      el("POSadmin").textContent    = lastpw; //24Nov2025
+      updateStrengthUI("", readOpts());
+      //
+      const tts  = window.speechSynthesis;
+      const utter = new SpeechSynthesisUtterance(
+        'Generate strong passwords with the character sets you choose, Copy with one click; '+
+        '- Use at least 12–16 characters and include multiple sets for stronger passwords.');
+      tts.speak(utter);
+    });
+
+    // Initial
+    updateStrengthUI("", readOpts());
+  </script>
+</body>
+</html>
