@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#111827">
+    <title>Blog Posts</title>
+    <link rel="icon"  href="../G-blog/icon192.png" type="image/icon">
+    <link rel="stylesheet" href="../G-blog/style.css">
+    <link rel="manifest" href="../G-blog/manifest.json">
+    <!-- ... --> 
+    <script src="../G-blog/app.js"></script>    
+  </head>
+
+    <body>
+      <header class="navbar">
+        <div class="container nav-content">
+          <a href="/" class="logo">Tutap4500 Blog</a>
+          <nav>
+            <a href="/blog">Home</a>
+            <a href="/admin">Admin</a>
+            <a href="/post" class="active">Posts</a>
+          </nav>
+        </div>
+      </header>
+
+      <main class="container">
+        <article id="posts"></article>
+        <article id="play-tag">
+          <p id="play-button"></p>
+          <p id="play-content"></p>
+          <p id="play-lang"></p>
+        </article>
+      </main>
+
+      <footer class="footer">
+        <div class="container">
+          <button id="dark-toggle" class="dark-btn">🌓 <did>darkmode</did></button>
+          <span id="play-status" style="font-size: smaller;" title="Content speaking status.">.</span>
+          <p title="Dapvv4500 -v23.05.2026 -en/vn updated.">© <span id="year"></span> Tutap4500 Blog. All rights reserved.</p>  
+          
+          <p title="Select language version: en=English, vn=Vietnamese." style="font-size: smaller;"> | View posts sample: 
+            <a href='/samples-en' style="color: blueviolet;"> en </a> / <a href='/samples-vn' style="color: blue;"> vn </a>
+          <span id="usesamples" title="Before do this, Let's Backup your Posts data first. it overWrite localStorage"> | Use sample posts |</span>
+          </p>
+        </div>
+      </footer>
+
+    <!-- 	WPA - responsive web app  -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        console.log('*** serviceWorker.register *** POSTS');
+        navigator.serviceWorker.register('../G-blog/blog_worker.js')
+          .then(() => { 
+            console.log('\n1- ✅Service Worker Registered (blog_worker.js)\n');
+          })
+          .catch(err => console.log('\n2- ❌Service Worker Error: \n'+ err, "\n"));
+      }
+      /* footer */
+      const el = (id) => document.getElementById(id);
+      el('year').textContent = new Date().getFullYear();
+      // render post ID
+      const path = window.location.pathname;
+      const id = new URLSearchParams(location.search).get("id"); 
+      console.log('\n++++++', 'Load posts.html as ' + path);
+      console.log(`2- 🔀url: ${path}?id=${id}`);
+      /* read more -> */
+      switch (path) {
+        case '/post':
+          if (id !=='') {
+            console.log(111, '/post? id= ' + id);
+            renderSinglePost();
+          }
+          break;
+        case '/samplepost-en':
+          if ( id !== '' ) {
+            console.log(222, 'ENG /samplepost-en? id= ' + id);
+            render_Sample_Post('en'); };
+          break;
+        case '/samplepost-vn':
+          if ( id !== '' ) {
+            console.log(333, 'VN /samplepost-vn? id= ' + id);
+            render_Sample_Post('vn'); 
+          }
+          break;
+
+        default:
+          console.log(444, 'NOT found any /samplepost-..? id= ' + id, 'posts.html');
+          break;
+      }
+      /* if not found Post ID then call  getAllPosts() */
+      const found = el("posts").textContent.includes('Not any found.');
+      const exist = /Not any found/i.test(el("posts").textContent);
+      if (found && exist) { getAllPosts() };
+    </script>
+    
+    <!-- Use "Posts-Samples-en.json" (23-May-2026)  -->
+    <script>
+      const url = window.location.pathname;
+      var jsfile = '';
+      if ( url === '/samplepost-en') { jsfile = 'Posts-Samples-en.json'; } 
+      else { jsfile = 'Posts-Samples-vn.json'; }
+
+      el('usesamples').addEventListener('click', evt => {
+        if (url ==='/post') {
+          alert("Select language first! en /vn ?");
+          return;
+        }
+        const entered = confirm("The Sample Posts is over Write your Posts.");
+        console.log('\n+++++', jsfile);      
+        console.log(0.41, '=> Load Sample Posts = '+entered);      
+
+        if ( entered ) {
+          getSample_Jsons('../G-blog/' + jsfile)
+          .then (data => {
+            Object.entries(data).forEach(([key, value]) => {
+              if (key==='my_blog_posts_v1')   {
+                localStorage.setItem(key, value);
+                let posts = JSON.parse(value).length;
+                let lengt = value.length;
+                let mess = `<u>${jsfile}</u><br>
+                  ** Sample Posts Reload <b>Completed. </b><br>
+                  ** Key = "${key}" <br>
+                  ** Posts = ${posts} <br>
+                  ** Length = ${lengt} <br>
+                `
+                console.log( 0.42, `Load : "${jsfile}" - {${key}} - <${posts}> - (${lengt})` );
+                el('posts').innerHTML = '<p>' + mess + '--><b> Refresh the Home page </b>..</p>';
+              }
+            });
+          });
+        } else () =>  {
+          el('posts').innerHTML = 'Dev ERROR -> worker.js';
+        } //if
+      });
+
+        // helper funct (13-May-2026)
+        async function getSample_Jsons(jfile) {
+          console.log(0.401, '** Fetching resource :', jfile);
+          try {
+            let response = await fetch(jfile);
+            if (!response.ok) {
+              console.error(0.402, '-- Fail.. /Fetch Sample Posts OK ...', response.ok );
+              throw new Error ('0.401; HTTP error! code: ' + response.status);
+            }
+            let data = await response.json();
+            console.log(0.403, '++ Fetch Sample Posts OK...', 'data', response.status);
+            return data;
+
+          } catch (error) {
+            let mess = {mess: `-- Cannot fetch file : <b>${jfile}</b>`,
+                        error: `-- Not existing... (${error})`};
+            //console.error(0.405, mess.error);
+            el('posts').innerHTML = JSON.stringify(mess, null, 2); 
+            return mess;
+          };
+        };
+    </script>
+
+    <!-- post to speak -->
+    <script>  
+      const tts  = window.speechSynthesis;
+      if (tts.speaking ) tts.cancel();
+
+      const playBtn = el("play-button");
+      const playCnt = el("play-content");
+      const playLng = el("play-lang");
+      const playStat = el("play-status");
+
+      const content = playCnt.innerText;
+      var vlang = playLng.textContent.trim();
+
+      //console.log(0.222, content, vlang);
+      function readContent(content, vlang) {
+        const utter = new SpeechSynthesisUtterance(content);
+        const rate  = 0.7;
+        utter.rate  = rate;
+        utter.lang = 'en-US'; 
+        if ( vlang ) {utter.lang = vlang};
+        // speak
+        
+        playBtn.innerText = "⏸️";
+        tts.speak(utter);
+        // End
+        utter.onend = () => { playBtn.innerText = '▶️' };
+
+        playStat.innerText = '2,readContent()-' + utter.rate + utter.lang + playBtn.innerText;
+        console.log(playStat.innerText);
+      };
+      
+      /* reading / speak post playCnt && */
+      if (content.length > 1) {
+        playBtn.addEventListener('click', e => {
+          e.preventDefault();
+          if (tts.speaking && !tts.paused) { 
+            tts.pause();  
+            playStat.innerText = '3, Paused()-' + tts.speaking + '-' + tts.paused;
+          } else if(tts.paused) {
+            tts.resume(); 
+            playStat.innerText = '4, Resume(),'+ tts.speaking + ','+ tts.paused;
+          } else {
+            if (tts.speaking ) tts.cancel();
+            readContent(content, vlang); 
+            playStat.innerText = '5, Speak(), speaking=' + tts.speaking + ', paused=' + tts.paused;
+          }
+          console.log(playStat.innerText);
+        });
+      }
+      /* Choose language */
+      playLng.addEventListener('click', e => {
+        e.preventDefault();
+        if(playLng.textContent.trim() === 'en-US') { 
+          playLng.textContent = 'vi-VN'; tts.cancel(); playBtn.innerText = '▶️';
+        } else {
+          playLng.textContent = 'en-US'; tts.cancel(); playBtn.innerText = '▶️';
+        };
+        vlang = playLng.textContent.trim();
+        playStat.innerText = 'TTS.speaking = ' + tts.speaking + ','+ tts.paused;
+        console.log('6, chooseLanguage()', vlang, playStat.innerText);
+      });
+    </script>
+
+  </body>
+</html>
