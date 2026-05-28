@@ -4,7 +4,7 @@
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "multi-pages-app",
+	"name": "omg-nicer",
 	"main": "src/index.js",
 	"compatibility_date": "2026-05-05",
 	"observability": {
