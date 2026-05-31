@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="theme-color" content="#111827">
+    <meta name="viewport"    content="width=device-width, initial-scale=1.0" />
+    <title>QR code genertor</title>
+    <link rel="icon"  href="icon.png" type="image/x-icon">
+    
+  </head>
+  <body>
+    <h1 title="Dapvv4500-12.2025">QR Generator</h1>
+    <p>Click the below button to generate a new QR code. <br>
+      This will make a request to your Worker.
+    </p>
+    <p style="font-weight: 600;">
+      1-Input text: 
+      <button onclick="clearInput()" style="font-weight: 600;"> Clear text </button><br>
+      <textarea type="text" id="text" rows="4" cols="80">https://qr-code-generator.omg-1002.workers.dev</textarea>
+      <br>
+      <button onclick="generate()" style="font-weight: 600;">
+      2-Generate QR</button>
+    </p>
+    <p>
+      <span style="font-weight: 600;">
+      3-QR Code Image</span> (take screen short and design it your way)
+    </p>
+    <img id="qr" src="#" />
+    <p style="font-weight: 600;" title="this Note is used for QR image filename.">
+      4-Notes:
+        <textarea type="text" id="notes" placeholder="Enter notes" 
+          style="display: flex; flex-direction: row; justify-content: space-between;" 
+          rows="2" cols="40" title="use notes as QRcode name.svg file"></textarea>
+    </p>
+    <button onclick="downloadQR()" style="font-weight: 600;">
+      5-Download QR
+    </button>
+    <p style="font-size:12px; color: lightgrey;">
+      © <span id="year"></span> all right reserved - Dapvv4500-v.15.05.2026.<br> * run: npx wrangler deploy 
+      (open link: https://qr-code-generator.omg-1002.workers.dev/)
+    </p>
+    
+    <!-- QR code generate -->
+    <script>
+      const el = (id) => document.getElementById(id);
+      el('year').textContent = new Date().getFullYear();
+      var imgName = 'QRcode.svg';
+
+      function clearInput() {
+        document.querySelector("#text").value = "";
+        document.querySelector("#notes").value = "";
+        document.querySelector("#qr").src = "#";
+      }
+      function downloadQR() {
+        const notesText = el('notes').value.trim();
+        if (notesText !== '') { imgName = notesText + '.svg'; }
+        console.log(0.001,'QRCode download - file name .svg =', imgName);
+
+        const qr = document.querySelector("#qr").src;
+        const a = document.createElement("a");
+        a.href = qr;
+        a.download = imgName;
+        a.click();
+      }
+
+      function generate() {
+        console.log(window.location.pathname, '-> 1-input text -> 3-QR image -> 5-Download QR');
+        fetch(window.location.pathname, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: document.querySelector("#text").value })
+        })
+        .then(response => response.blob())
+        .then(blob => {
+          const reader = new FileReader();
+          reader.onloadend = function () {
+            document.querySelector("#qr").src = reader.result; // Update the image source with the newly generated QR code
+          }
+          reader.readAsDataURL(blob);
+        })
+      }
+    </script>
+  </body>
+</html>
+
+

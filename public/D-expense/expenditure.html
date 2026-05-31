@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta ContentType= "text/html" charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" href="../D-expense/icon192.png" type="image/x-icon">
+        <title>Simple Expenditure Tracker</title>
+
+        <style>
+            body {
+                font-family: "Segoe UI", Arial, sans-serif;
+                background: #f4f4f9;
+                margin: 0;
+                text-align: center;
+            }
+            .container {
+                max-width: 100%;
+                display: inline-block;
+                margin: 0px;
+                padding: 0px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+            }
+            #budget-click {
+                background: #815583;
+                color: white;
+                padding: 5px;
+                margin-top: 8px;
+                margin-bottom: 15px;
+                font-size: 1.4em;
+                border-radius: 5px;
+            }
+            #expense-name   { color: #1900ff; }
+            #expense-amount { color: #a50903; }
+            select          { color: #4ab862; }
+            /* label          { color: #023d11; } */
+            
+            input, select {
+                width: 96%;
+                padding: 8px;
+                margin: 8px;
+                box-sizing: border-box;
+                border: 1px solid #ccc;
+                border-radius: 6px;
+                font-size: 1.2em;
+            }
+            button {
+                width: 50%;
+                background: #28a745;
+                color: white;
+                font-weight: bold;
+                padding: 8px;
+                border: none;
+                border-radius: 6px;
+                text-align: center;
+            }
+            button:active { background: #a283fa; }
+            table {
+                width: 100%;
+                margin: 4px;
+                border-collapse: collapse;
+                font-size: 1.1rem;
+                overflow: hidden;
+                white-space: nowrap;
+            }
+            th {
+                background-color: #a48ca5;
+                color: whitesmoke;
+                padding: 3px;
+                text-align: left;
+                overflow: hidden;
+                white-space: nowrap;
+
+            }
+            td {
+                padding: 4px;
+                text-align: left;
+                font-weight: normal;
+                color: grey;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis; 
+                max-width: 120px; /* Adjust this to your desired column width */
+                white-space: nowrap;
+            }
+            .highlight { 
+                color: #770077; 
+                font-size: 0.8rem;
+                cursor: pointer;
+                padding: 4px;
+                border: 1px dotted #77f3e2;
+            }
+            .exptotal { 
+                color: #a77c7c;
+                text-align: right;
+                font-size: 0.9rem;
+                padding: 4px 0 ;
+            }
+            #advance { color: #73b4ff;}
+            #forward { color: #419efc;}
+            #budget-amount  { color: #e7e429; font-size: 0.8rem;}
+            #add-mess       { color: #6b90a5; font-size: 0.9rem; text-align: center;}
+            #budget-click, #fresh-2, #exportToCsv { cursor: pointer;}
+
+            /* background-image: url('./learn_more.jpg'); */
+            .full-scr-img {
+                background-size: contain;
+                background-position: center;
+                background-repeat: no-repeat;
+            }
+            /* Make it feel like a mobile card */
+            .x-view { cursor: pointer; }
+            @media (max-width: 600px) {}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <img src="../D-expense/learn_more.jpg" width="200" height="200" id="learn--more" class="full-scr-img" alt="">
+
+            <span id="advance"      title="Month budget = $advance +$forward.">Adv</span>
+            <span id="advance-id"   title=""> | </span>
+            <span id="forward"      title="forward amo can be subtract or plus.">For</span>
+
+            <span id="learnmore" title="Pure html,css,JavaScript - @dapvv4500-v.09.10.2025 - (R)all right reserved."
+                 class="highlight"> > learn more -> </span>
+
+            <div title="Click to view all 'Advance' /Delete - v.30.05.2026"
+                id="budget-click">Expenditure Personal 💰
+                <span id="budget-amount" title="Sum ( 1 + 2 )">adv+for=budget</span>
+            </div>
+
+            <label for="expense-name" style="text-align: left;">
+                <input type="text" id="expense-name" placeholder="Expense Name">
+            </label>
+
+            <label for="expense-amount">
+                <input type="number" id="expense-amount" placeholder="Amount">
+            </label>
+            <label>
+                <select id="expense-category" title="what? 6=advance; 7=forward, balancce." placeholder="Select category">
+                    <option value=""                >Select category</option>
+                    <option value="petrol-transport">1- Petrol-transport 🚗     </option>
+                    <option value="repair-bills"    >2- Repair-bills 🛠️📵       </option>
+                    <option value="personal-exp"    >3- Food-shopping 🙈😁      </option>
+                    <option value="other-exps"      >4- Other-exps 🙏🫧           </option>
+                    <option value="card-exps"       >5- Card-exps 💴🗣             </option>
+                    <option value="advance"         >6- $Advance-amo 💳(budget)    </option>
+                    <option value="forward"         >7- $Forward-amo 💷(budget)    </option>
+                </select>
+            </label>
+            
+            <button id="add-Button" onclick="addExpense()" 
+                    title="Pure html,css,JavaScript -@updated-27.05.2026 -(C) 2026 - All right reserved.">✅ Add Expense</button>
+            <div id="icons" title="click to add the icon into 'exp name'."> </div> 
+            <hr> 
+            <!-- --------------------- -->
+            <span id="fresh-2" title="Click to reload - refresh all 'Exp'.."> <b> Expenses🔥Tracker</b> </span>
+            <span id="exportToCsv" class="highlight" title="Export expenses to Excel format *.csv ">> exportToCsv ></span>
+            <div>
+                <div id="add-mess" class="exptotal" title="count = adv + forw + exps">
+                "🔀clean source code, safe for usage, your data is private on your device."</div>
+                <!-- <span class="exptotal">'xTotal'= </span><b><span >...</span></b>  -->
+                <span id="month-1" class="highlight">⬅️</span> 
+                <span id="month-label" class='exptotal' title="this month / last month -> refresh ->">🔕...</span>
+                <span id="month+1" class="highlight">➡️</span> 
+            </div>
+            <table id="expense-table" class="table">
+                <colgroup>
+                    <col style="width:50%;">
+                    <col style="width:25%;">
+                    <col style="width:15%;">
+                    <col style="width:10%;">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th id="exp-name">Exp Name</th>
+                        <th id="exp-total" title="Sum all exp">Amount</th>
+                        <th id="exp-count" title="count of expenses.">Date</th>
+                        <th>Action </th>
+                    </tr>
+                </thead>
+                <tbody id="expense-list">
+                </tbody>
+            </table>
+        </div><br>
+
+    <!-- -------------- -->
+    <script> 
+        const STORAGE_EX_KEY = "expenses_tracker_v2";
+        const el = (id) => document.getElementById(id);
+        const icons     = el('icons');
+        const myString  = "HideMe 📵 🛴 👍 👁 ✋ 🍫 💴 ✅ ⏺ 🚗 🫧 😺 🐈 👀 🍿 💦 ❣ 🚕 🛢 🧈 💷 💳 💣 📮  🔜 🔙 🔀 ❌ 🧰 🛠️  ⏩ ⏪"
+        const iarray    = myString.split(/\s+/);
+        let newString   = "";
+        if (iarray.length > 0 ) {
+            iarray.forEach( icon => { 
+                newString += `<span style="cursor: pointer;" class="w-clickable" 
+                                data-word="${icon}"> ${icon}</span>`;
+            });
+            icons.innerHTML = newString;
+        };
+        icons.addEventListener('click', (e) => {
+            if (e.target && e.target.classList.contains('w-clickable')){
+                const word = e.target.dataset.word;
+                e.target.style.backgroundColor = 'yellow';
+                if ( word == 'HideMe') {
+                    icons.style.display='none';
+                } else {
+                    nameInput.value = nameInput.value.trim() + word;
+                }
+            }
+        })
+    /* ----------- */
+        const advanceAmo = el('advance');      // add advance
+        const forwardAmo = el('forward');      // span forward
+        
+        const clickbudget = el('budget-click');     // for Click
+        const amobudget   = el('budget-amount');    // span budget
+        
+        const nameInput     = el('expense-name');  // input
+        const amountInput   = el('expense-amount');
+        const categoryInput = el('expense-category'); 
+        
+        const addButton     = el('add-Button');    // button
+        const exportButton  = el('exportToCsv');
+        /* ------------ */  // monthButton.title;
+        const addmess       = el('add-mess');      // messages
+        const monthlabel    = el('month-label');
+        const month_1       = el('month-1');
+        const monthx1       = el('month+1');        
+        
+        const expname       = el('exp-name');      // span name table
+        const exptotal      = el('exp-total');
+        const expcount      = el('exp-count');
+        
+        let xtotal = 0;  // Total exp
+        let budget = 0; // Sum budget
+        let budCount = 0; // how many budget entered //
+        let budTable = "";
+            
+console.log(
+`-----------------
+- v.09.10.2025,
+- v.28.04.2026 - CloudFlare app,
+- v.25.05.2026 - GitHub pages,
+- v.27-05-2026 - Updated: monthConvert(),
+-----------------`);
+var ii=0;
+let ddate = new Date();
+monthlabel.innerText = monthConvert(0, ddate);
+// helper
+function monthConvert(ii, ddd) {
+    let mydate = new Date(ddd);
+    let gmon = mydate.getMonth();
+    let smon = new Date(mydate.setMonth(gmon+ii));//.toDateString();
+    let mm_ = smon.toLocaleString('en-US', {month:'short'});
+    let yy_ = smon.getFullYear();
+    return `${mm_}-${yy_}`;
+};
+
+/* ------------ */
+        // Click //
+        month_1.addEventListener('click', () => {
+            monthlabel.innerText = monthConvert(ii-=1,  new Date());
+            advanceAmo.innerText='';    forwardAmo.innerText='';  
+            amobudget.innerText='';     addmess.innerText = '';     
+            loadExpenses();
+            icons.style.display='block';
+        }); 
+        // Click //
+        monthx1.addEventListener('click', () => {
+            monthlabel.innerText = monthConvert(ii+=1, new Date());
+            advanceAmo.innerText='';    forwardAmo.innerText='';    
+            amobudget.innerText='';     addmess.innerText = '';
+            loadExpenses(); 
+            icons.style.display='block';
+        }); 
+
+        /* add clickable functions */
+        document.addEventListener('DOMContentLoaded', () => { loadExpenses() });
+        el('fresh-2').addEventListener('click', () => { loadExpenses() });
+        // export
+        exportButton.addEventListener('click', () => { exportToCsv() });
+        // Expenditure Personal -> add budget
+        clickbudget.addEventListener('click', () => {
+            nameInput.value         = 'Select: 6-advance /7-forward';
+            amountInput.placeholder = "0.0";
+            categoryInput.value     = 'advance';
+            addButton.innerText     = 'Add budget';
+            //row.innerHTML = "<br>" + budTable + "<br>";
+            exptotal.innerText = '$ SUM()';
+            expcount.innerText = '()';
+            expname.innerText = 'Budget items';
+            expname.style.color = 'green';
+            if (xtotal <= 0 ) exptotal.innerText = 'empty.';
+            //            
+            const expenses = getExpenses();
+            el('expense-list').innerText='';
+            if ( expenses.length < 1 ) { exptotal.innerText = 'empty'; return; };
+            // Loading
+            console.log('---- load budget items only -v30.05.2026- ', expenses.length);
+            budCount = 0;   budget=0;
+            //amobudget.title = 'SUM (advance + forward): \n';
+
+            addmess.innerText = 'List all "Advance", "Forward" amounts ! ';
+            expenses.forEach( expense => {
+                const mm2 = monthConvert(0, expense.date);
+                if ( mm2 === monthlabel.innerText.trim() &&
+                    (expense.category === 'advance' || 
+                    expense.category == 'forward')) { 
+                        addBudgetToTable(expense); 
+                };
+            });
+        });
+        //  provide info -> budget //
+        advanceAmo.addEventListener('click', () => {
+            let adv_prop = parseFloat(advanceAmo.innerText);
+            console.log(adv_prop,'11 +++ advanceAmo.click()');
+            if ( !adv_prop) {
+                alert( "- Advance amo can be Bank, Transfer,\n- or $$ cash advance ..\n- Delete button below.");
+                setTimeout ( () => { addmess.innerText='' }, 7000);
+                categoryInput.value = 'advance';
+                nameInput.value = 'add advance amo';
+                return;
+            };
+            if ( adv_prop !== 0 ) {
+                let {id, adv, amo, cat, date} = JSON.parse(advanceAmo.title);
+                //console.log( id, adv, amo, cat, date );
+                nameInput.value = adv;
+                amountInput.value = amo;
+                categoryInput.value = cat;
+                addmess.innerText = "Click to delete, remove 'Advance $$'";
+                return;
+            }
+        });
+        forwardAmo.addEventListener('click', () => {
+            let for_prop = parseFloat(forwardAmo.innerText);
+            console.log(for_prop,'22 -- forwardAmo.click()');
+            if ( !for_prop) {
+                alert( "-- 'forward amo' is balance from previous period to current month.\n-- Delete button below." );
+                //setTimeout ( () => { addmess.innerText='' }, 7000);
+                categoryInput.value = 'forward';
+                nameInput.value = 'add forward amo';
+                return;
+            };
+            if ( for_prop !== 0 ) {
+                let {id, forw, amo, cat, date} = JSON.parse(forwardAmo.title);
+                //console.log( id, forw, amo, cat, date );
+                nameInput.value = forw;
+                amountInput.value = amo;
+                categoryInput.value = cat;
+                addmess.innerText = "Click to delete, remove 'Forward $$'";
+                return;
+            }
+        });
+
+        categoryInput.addEventListener("change", ()=>{
+            nameInput.value = '-' + categoryInput.value; 
+        })
+          
+        // Load expenses from local storage when the page loads
+        function loadExpenses() {
+            const expenses = getExpenses();
+            el('expense-list').innerText='';
+            if ( expenses.length < 1 ) { exptotal.innerText = 'empty'; return; };
+            // Loading
+            console.log('---- loadExpenses() = ', expenses.length);
+            var ii = 0;     budCount = 0;   xtotal=0;    budget=0;
+            amobudget.title = 'SUM (advance + forward): \n';
+            advanceAmo.innerText='';
+            forwardAmo.innerText='';
+
+            expenses.forEach( expense => {
+                const mm2 = monthConvert(0, expense.date);
+                if ( mm2 === monthlabel.innerText.trim() ) { 
+                    addExpenseToTable(expense); 
+                    if(expense.category !== 'advance' && expense.category !== 'forward') ii += 1 ;
+                };
+            });
+            expname.innerText = 'Exp items';
+            expname.style.color = 'white';
+            expcount.innerText = '('+ ii +')'; 
+            if (xtotal <= 0 ) exptotal.innerText = 'empty.';
+            //console.log(expense.date, mm2, xtotal);
+        }
+
+        function addExpense() {
+            const name      = nameInput.value.trim();
+            const amount    = parseFloat(amountInput.value.replace(/e/g,""));
+            const category  = categoryInput.value;
+            var added_mess  = '';
+            // Validate inputs //
+            if (name === '' || isNaN(amount) || category === '') {
+                console.log('addExpense => ', name, isNaN(amount),amount,category );
+                alert('(Not a number!) Please fill with valid data.');
+                return;
+            }
+            const expense = {
+                id: Date.now(), // Unique ID for each expense
+                name: name,
+                amount: amount,
+                category: category,
+                date: new Date() //.toDateString()
+            }; 
+            // Retrieve existing expenses, add new one, and save
+            const expenses = getExpenses();
+            expenses.push(expense);
+            saveExpenses(expenses);
+            // refresh expense to the table
+            loadExpenses();
+            // Clear input fields
+            added_mess = 'Added successfully! ';
+            clear_Fields( added_mess ); 
+        } // addExpense //
+                    
+        function getExpenses() {
+            const expensesString = localStorage.getItem(STORAGE_EX_KEY);
+            return expensesString ? JSON.parse(expensesString) : [];
+        }
+        //*//
+        function saveExpenses(expenses) {
+            localStorage.setItem(STORAGE_EX_KEY, JSON.stringify(expenses));
+            loadExpenses(); // Reload the table to reflect the changes
+        }
+        //* v30.05.2026 //
+        function addBudgetToTable(bud) {
+            const expenseList = el('expense-list');
+            const row       = document.createElement('tr');
+            let ddd = new Date(bud.date);
+            let dd_ = ddd.getDate();
+            let hh_ = ddd.getHours();
+            let mm_ = ddd.getMinutes()
+            let xdate = `${dd_} T:${hh_}:${mm_}`;
+            row.innerHTML = `
+                <td><span class='x-view' onclick="viewExpense(${bud.id})">${bud.name}</span></td>
+                <td>$${amount_Format(bud.amount)}</td>
+                <td style='font-size: small'>${xdate}</td>
+                <td><button class='highlight' onclick="deletebudget(${bud.id})">❌</button></td>
+            `;
+            expenseList.appendChild(row);
+            budget += bud.amount;
+            budCount += 1;
+            exptotal.innerText = '$' + amount_Format(budget);
+            expcount.innerText = '('+ budCount +')';
+            expname.innerText = 'Budget items';
+            expname.style.color = 'green';
+            if (xtotal <= 0 ) exptotal.innerText = 'empty.';
+        }
+
+        //*//
+        function addExpenseToTable(expense) {
+            const expenseList = el('expense-list');
+            const row       = document.createElement('tr');
+            let ddd = new Date(expense.date);
+            let dd_ = ddd.getDate();
+            let hh_ = ddd.getHours();
+            let mm_ = ddd.getMinutes()
+            let xdate = `${dd_} T:${hh_}:${mm_}`;
+
+            switch ( expense.category ) {
+                case 'advance':
+                    advanceAmo.innerText = amount_Format(expense.amount);
+                    advanceAmo.title = `
+{
+"id":"${expense.id}",
+"adv": "${expense.name}",
+"amo": "${expense.amount}",
+"cat": "${expense.category}",
+"date": "${xdate}"
+}`;
+                    budget += expense.amount;
+                    budCount += 1;
+                    console.log(budCount, '* budget advance=', advanceAmo.innerText);
+                    amobudget.title += expense.amount + ' -adv;\n';
+                    break;    
+                case 'forward':
+                    forwardAmo.innerText = amount_Format(expense.amount);
+                    forwardAmo.title = `
+{
+"id":"${expense.id}",
+"forw": "${expense.name}",
+"amo": "${expense.amount}",
+"cat": "${expense.category}",
+"date": "${xdate}"
+}`;
+                    budget += expense.amount;
+                    budCount += 1;
+                    console.log(budCount, '** budget forward==', forwardAmo.innerText);
+                    amobudget.title += expense.amount + ' -for;\n';
+                    break;
+
+                default:
+                    row.innerHTML = `
+                        <td><span class='x-view' onclick="viewExpense(${expense.id})">${expense.name}</span></td>
+                        <td>$${amount_Format(expense.amount)}</td>
+                        <td style='font-size: small'>${xdate}</td>
+                        <td><button class='highlight' onclick="deleteExpense(${expense.id})">❌</button></td>
+                    `;
+                    expenseList.appendChild(row);
+                    xtotal += expense.amount;
+                    const theamo    = amount_Format(expense.amount);
+            }
+            exptotal.innerText = amount_Format(xtotal);
+            amobudget.innerText = amount_Format(budget) +' (bud:' + budCount + ')';
+            addmess.innerHTML = "Click 'X' delete, remove.";
+        }
+        
+        function viewExpense(id) {
+            let expenses = getExpenses();
+            const expense = expenses.filter(expense => expense.id == id);
+            if ( !expense ) return;
+            const { name, amount, category } = expense[0]; //console.log(id, name, amount, category);  
+            nameInput.value = name ;
+            amountInput.value = amount;
+            categoryInput.value = category;
+        }
+        
+        // Helper delete budget // v30.05.2026
+        function deletebudget(id) {
+            if ( !confirm('Plz confirm to delete selected item /id: ' + id) || id ==='') return;
+            let expenses = getExpenses();
+            expenses = expenses.filter(expense => expense.id !== id);
+            saveExpenses(expenses);
+            console.warn(0.005, id +'= deletebudget() -> Loading;  Exp-length= ' + expenses.length, ' -> updated-30.05.2026');
+            addmess.innerText = 'DONE!';
+            loadExpenses(); // Reload 
+        }  
+
+        // remove from list then save all items again
+        function deleteExpense(id) {
+            if ( !confirm('Plz confirm (OK /Cancel) to delete selected expense!' )) return;
+            let expenses = getExpenses();
+            expenses = expenses.filter(expense => (expense.id) !== id);
+            console.warn(0.004, 'Remove; deleteExpense(id)', id, ' -> updated-27.05.2026');
+            saveExpenses(expenses);
+            addmess.innerText = 'Deleted exp id: ' + id ;
+            loadExpenses(); // Reload the table to reflect the changes
+        }
+    
+        //<!-- Check for existing expense -->
+        function amount_Format(amount) {
+            const temp = parseFloat(amount);
+            return temp.toLocaleString('en-US', { 
+                minimumFractionDigits: 1, 
+                maximumFractionDigits: 2 
+            });
+        };
+
+        function clear_Fields(clear_input) {
+            nameInput.value = '';
+            amountInput.value = '';
+            categoryInput.value = '';
+            amountInput.placeholder = 'Amount';
+            addButton.innerText     = 'Add Expense';
+            
+            addmess.innerText = clear_input;
+            setTimeout ( () => { addmess.innerText='' }, 5000);
+        }
+        //src="./main-script.js">
+        function exportToCsv() {
+            let expenses = getExpenses();
+            if (expenses.length === 0) {
+                alert("No expenses to export.");
+                return;
+            }
+            // Define the CSV header
+            let csvContent = "data:text/csv;charset=utf-8,";
+
+            csvContent += `"Exported : ",  ${new Date().toLocaleString()}, _, _\r\n `;
+            csvContent += "Name, Amount, Category, Date\r\n";
+            // Add each expense row
+            expenses.forEach(expense => {
+                let row = `'${expense.name},${expense.amount},'${expense.category},'${expense.date}`;
+                csvContent += row + "\r\n";
+                //console.log(row,0.00002222);
+            });
+            // Create a temporary link element to trigger the download
+            const encodedUri = encodeURI(csvContent);
+            const link   = document.createElement("a");
+            let   mmonth = new Date().getMonth() + 1;        
+            let   yyear  = new Date().getFullYear();        
+            let   fname  = "Expenses-month-" + mmonth + "-" + yyear + ".csv"
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", fname);
+
+            document.body.appendChild(link); // Required for Firefox
+            link.click();
+            document.body.removeChild(link);
+            //
+            addmess.innerText =  "Exported :: fileName = ''" + fname +"''";
+            addmess.style.fontSize = '14px';
+            addmess.style.color = 'blue';
+
+            alert( addmess.innerText );
+        }
+        /* Learn more  */
+        const imagePath = '../D-expense/learn_more.jpg'; // Replace with your image path
+        const learn_more = el('learn--more'); // image
+        const learnmore = el('learnmore');     // button
+        
+        /* learn more click */
+        learnmore.addEventListener('click', (_) => {
+            addmess.innerText = 'require file { ./learn_more.jpg } in same ./folder !';
+            checkIfImageExists(imagePath, ( exists ) => {
+                if ( !exists ) { 
+                    alert(`::learn_more:: "${imagePath}" ::does not exist.`);
+                    return;
+                }
+                learn_more.src = imagePath;
+                learn_more.style.display = "block";
+                window.open(imagePath, '_blank');
+            });
+        });
+        /* learn_more off */
+        learn_more.addEventListener('click', () => {
+            learn_more.style.display = "none";
+        });
+        // helper //
+        function checkIfImageExists(imageUrl, callback) {
+            const img = new Image();
+            img.src = imageUrl;
+            if (img.complete) { callback(true) }         // Image is already in cache or loaded immediately
+            else {
+                img.onload = () =>  { callback(true) };   // Image loaded successfully
+                img.onerror = () => { callback(false) };  // Image failed to load (e.g., not found, broken link)
+            }
+        }
+    </script>
+    </body>
+</html>
