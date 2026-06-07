@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Clock-202 - WPA</title>
+    <link rel="manifest" href="../E-clock/manifest.json">
+    <link rel="icon" href="../E-clock/clock192.png" type="image/x-icon">
+    <style>
+        * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            user-select: none;
+        }
+
+        /* Clock Section */
+        .clock-section {
+            background: rgba(185, 207, 255, 0.95);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            user-select: none;
+
+        }
+
+        /* Analog Clock Styles */
+        .analog-clock {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .clock-face {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            border: 2px solid #2c3e50;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ffffff 0%, #617c97 100%);
+            box-shadow: 
+                inset 0 0 30px rgba(0,0,0,0.1),
+                0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .clock-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 16px;
+            height: 16px;
+            background: #e74c3c;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            box-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+        }
+
+        /* Clock Hands */
+        .hour-hand, .minute-hand, .second-hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            border-radius: 10px;
+        }
+
+        .hour-hand {
+            width: 6px;
+            height: 80px;
+            background: linear-gradient(to top, #2c3e50, #34495e);
+            margin-left: -3px;
+            z-index: 3;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
+
+        .minute-hand {
+            width: 4px;
+            height: 110px;
+            background: linear-gradient(to top, #2c3e50, #34495e);
+            margin-left: -2px;
+            z-index: 2;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
+
+        .second-hand {
+            width: 2px;
+            height: 120px;
+            background: linear-gradient(to top, #e74c3c, #c0392b);
+            margin-left: -1px;
+            z-index: 4;
+            transition: transform 0.1s ease-out;
+            box-shadow: 0 0 3px rgba(231, 76, 60, 0.5);
+        }
+
+        /* Hour Markers */
+        .hour-marker {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            width: 0px;
+            height: 30%;
+            background: #2c3e50;
+            transform-origin: bottom center;
+            margin-left: -2px;
+        }
+
+        .hour-marker span {
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: bold;
+            font-size: 18px;
+            color: #2c3e50;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+        }
+
+        /* Adjust number rotation to be readable */
+        .hour-marker:nth-child(5) span { transform: translateX(-50%) rotate(-0deg); }
+        .hour-marker:nth-child(6) span { transform: translateX(-50%) rotate(-30deg); }
+        .hour-marker:nth-child(7) span { transform: translateX(-50%) rotate(-60deg); }
+        .hour-marker:nth-child(8) span { transform: translateX(-50%) rotate(-90deg); }
+        .hour-marker:nth-child(9) span { transform: translateX(-50%) rotate(-120deg); }
+        .hour-marker:nth-child(10) span { transform: translateX(-50%) rotate(-150deg); }
+        .hour-marker:nth-child(11) span { transform: translateX(-50%) rotate(-180deg); }
+        .hour-marker:nth-child(12) span { transform: translateX(-50%) rotate(-210deg); }
+        .hour-marker:nth-child(13) span { transform: translateX(-50%) rotate(-240deg); }
+        .hour-marker:nth-child(14) span { transform: translateX(-50%) rotate(-270deg); }
+        .hour-marker:nth-child(15) span { transform: translateX(-50%) rotate(-300deg); }
+        .hour-marker:nth-child(16) span { transform: translateX(-50%) rotate(-330deg); }
+
+        /* Digital Clock */
+        .digital-clock {
+            text-align: center;
+        }
+
+        .digital-clock #clock {
+            font-size: 3em;
+            font-weight: bold;
+            color: #b10000;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .digital-clock #date {
+            font-size: 1.2em;
+            color: #1501c4;
+            font-weight: 500;
+        }
+
+        /* Reminder Section */
+        .reminder-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .reminder-section h2 h3 h4 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .reminder-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+            align-items: end;
+            user-select: none;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 200px;
+            flex: 2;
+            user-select: none;
+        }
+
+        .form-group label {
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #34495e;
+        }
+
+        .form-group input {
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        textarea {
+            field-sizing: content;
+            min-height: 50px;
+            max-height: 300px;
+            resize: none;
+        }
+        /* Reminders List */
+        .reminders-list h3 {
+            color: #2c3e50;
+            margin-bottom: 12px;
+            font-size: 1.3em;
+        }
+
+        #remindersList {
+            list-style: none;
+        }
+
+        .reminder-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s ease;
+        }
+
+        .reminder-item:hover {
+            background: #e9ecef;
+        }
+
+        .reminder-info {
+            flex: 1;
+        }
+
+        .reminder-time {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.3em;
+        }
+
+        .reminder-message {
+            color: #495057;
+            margin-top: 5px;
+        }
+
+        .delete-btn {
+            background: #017019;
+            padding: 8px 16px;
+            font-size: 14px;
+            border-radius: 6px;
+        }
+
+        .delete-btn:hover {
+            background: #e74c3c;
+            transform: translateY(-1px);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .modal h3 {
+            color: #e74c3c;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        .modal p {
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            color: #2c3e50;
+        }
+
+        #dismissBtn {
+            background: #27ae60;
+            margin-top: 10px;
+        }
+
+        #dismissBtn:hover {
+            background: #229954;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .clock-section {
+                flex-direction: column;
+                gap: 30px;
+            }
+            
+            .clock-face {
+                width: 250px;
+                height: 250px;
+            }
+            
+            .hour-hand {
+                height: 65px;
+            }
+            
+            .minute-hand {
+                height: 90px;
+            }
+            
+            .second-hand {
+                height: 100px;
+            }
+            
+            .digital-clock #clock {
+                font-size: 2.5em;
+            }
+            
+            .reminder-form {
+                flex-direction: column;
+            }
+            
+            .form-group {
+                min-width: auto;
+            }
+            
+            .reminder-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .delete-btn {
+                align-self: flex-end;
+            }
+        }
+
+        /* Empty state */
+        .empty-reminders {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        /* Success message animations */
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+            #reminderShow span {
+                font-size: small;
+                color: #229954;
+            }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Speak Time: -->
+        <header>
+            <form>
+                <p title="Time speak app - (v24.11.25-@Dapvv4500)">
+                    <label for="lang-Checkbox" id="lang-Label">en-US</label>
+                    <input type="checkbox" id="lang-Checkbox" value="vi-VN">
+                </p>
+                <p id="speak-time" title="select minute to speak the time.">🌞
+                    <label>1
+                        <input type="radio" name="tspeak" value="1" ></label>
+                    <label>15
+                        <input type="radio" name="tspeak" value="15"></label>
+                    <label>30
+                        <input type="radio" name="tspeak" value="30"></label>
+                    <label>45
+                        <input type="radio" name="tspeak" value="45"></label>
+                    <label>no
+                        <input type="radio" name="tspeak" value="no"></label>
+                </p>                       
+            </form>
+        </header>
+
+        <!-- Clock Section -->
+        <section class="clock-section">
+            <!-- Analog Clock -->
+            <div class="analog-clock">
+                <div class="clock-face">
+                    <div class="clock-center"></div>
+                    <div class="hour-hand" id="hourHand"></div>
+                    <div class="minute-hand" id="minuteHand"></div>
+                    <div class="second-hand" id="secondHand"></div>                   
+                    <!-- Hour markers -->
+                    <div class="hour-marker" style="transform: rotate(0deg)"><span>12</span></div>
+                    <div class="hour-marker" style="transform: rotate(30deg)"><span>1</span></div>
+                    <div class="hour-marker" style="transform: rotate(60deg)"><span>2</span></div>
+                    <div class="hour-marker" style="transform: rotate(90deg)"><span>3</span></div>
+                    <div class="hour-marker" style="transform: rotate(120deg)"><span>4</span></div>
+                    <div class="hour-marker" style="transform: rotate(150deg)"><span>5</span></div>
+                    <div class="hour-marker" style="transform: rotate(180deg)"><span>6</span></div>
+                    <div class="hour-marker" style="transform: rotate(210deg)"><span>7</span></div>
+                    <div class="hour-marker" style="transform: rotate(240deg)"><span>8</span></div>
+                    <div class="hour-marker" style="transform: rotate(270deg)"><span>9</span></div>
+                    <div class="hour-marker" style="transform: rotate(300deg)"><span>10</span></div>
+                    <div class="hour-marker" style="transform: rotate(330deg)"><span>11</span></div>
+                </div>
+            </div>
+             <!-- Digital Clock -->
+             <div class="digital-clock" title="click speak()">
+                <div id="clock">00:00:00</div>
+                <div id="date"></div>
+             </div>
+        </section>
+
+        <!-- Reminder Section -->
+        <section class="reminder-section" title="'Clock202-v24.11.2025'">
+            <h4 id="reminderShow" title="'Clock202-v24.11.2025'">Set Reminder (wpa-sw.js)</h4> 
+            <form id="reminderForm" class="reminder-form">
+                <div class="form-group">
+                    <label for="reminderTime">Time:</label>
+                    <input type="time" name="reminderTime" id="reminderTime">
+                    <div>
+                        <span id="000" title="clear." for="reminderMessage" style="cursor: pointer;">Message:</span>
+                        <span id="111" title="Select 1 for auto message."> (1) -</span>
+                        <span id="222" title="Select 2 for auto message."> (2) -</span>
+                        <span id="333" title="Select 3 for auto message."> (3)</span>                        
+                    </div>
+                    <label for="reminderMessage"></label>
+                    <textarea type="text" id="reminderMessage" namw="reminderMessage" row="1111"
+                    placeholder="Enter reminder message" required ></textarea>
+                    <button type="submit" style="display: inline-block;">Add Reminder</button>
+                </div>
+            </form>
+
+            <div class="reminders-list">
+                <h4 title="update message layout - v01.06.2026">Active Reminders
+                <button id="444"> 'stop speak' </button></h4>
+                <ul id="remindersList"></ul>
+            </div>
+        </section>
+    </div>
+
+    <!-- Notification Modal -->
+    <div id="notificationModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times</span>
+            <h3>Reminder!</h3>
+            <p id="notificationMessage"></p>
+            <button id="dismissBtn">Dismiss</button>
+            <button id="muteBtn">Mute</button>
+        </div>
+    </div>
+    <p style="font-size: small; text-align: center;">&copy<span id="year"></span>, All Right Reserved.</p>
+
+    <!-- Load Scripts of page -->
+    <script>
+        const tts = window.speechSynthesis;
+        const el = (id) => document.getElementById(id);
+        el('year').textContent = (new Date).getFullYear();
+        const speakLbl  = el('speak-time'); // every 15 minute
+        var llanguage   = el('lang-Checkbox').value;
+        let wakeLock    = null;
+        var svalue  =  5 ;
+        var stext   = '' ;
+        // WPA - responsive web app //
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('../E-clock/clock_sw.js')
+                .then(() => { 
+                    console.log('\n1- ✅Service Worker Registered (clock-202.html)\n');
+                    //alert('1- ✅Service Worker Registered (clock-202.html)');
+                })
+                .catch(err => console.log('\n2- ❌Service Worker Error: \n*', err, "\n"));
+        }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            window.app = new ClockReminderApp();
+            console.log('\nAnalog & Digital Clock with Reminder App initialized!\n');
+            // Request notification permission on load
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        });
+    </script>
+    
+    <!-- Analog & Digital Clock with Reminder App JavaScript -->
+    <script>
+        class ClockReminderApp {           
+            constructor() {
+                const tts = window.speechSynthesis;
+                this.reminders = this.loadReminders();
+                this.init();
+            }
+
+            init() {
+                this.startClock();
+                this.setupEventListeners();
+                this.renderReminders();
+                this.checkReminders(); //  
+
+                // Check reminders every 5 second
+                setInterval(() => {
+                    this.checkReminders();
+                }, 5000);
+            }
+
+            // Clock functionality
+            startClock() {
+                this.updateClock();
+                setInterval(() => {
+                    this.updateClock();
+                }, 1000);
+            }
+
+            // start clock //
+            updateClock() {
+                const now = new Date();
+                // Update digital clock
+                const timeString = now.toLocaleTimeString(llanguage, { 
+                    hour12: false,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                
+                const dateString = now.toLocaleDateString(llanguage, {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+
+                el('clock').textContent = timeString;
+                el('date').textContent = dateString;
+
+                // Update analog clock
+                this.updateAnalogClock(now);
+            }
+
+            updateAnalogClock(now) {
+                const hours = now.getHours() % 12;
+                const minutes = now.getMinutes();
+                const seconds = now.getSeconds();
+
+                // Calculate angles for each hand
+                const secondAngle = (seconds * 6) - 0; // 6 degrees per second
+                const minuteAngle = (minutes * 6) + (seconds * 0.1) - 0; // 6 degrees per minute + smooth seconds
+                const hourAngle = (hours * 30) + (minutes * 0.5) - 0; // 30 degrees per hour + smooth minutes
+
+                // Apply rotations to hands
+                const hourHand = el('hourHand');
+                const minuteHand = el('minuteHand');
+                const secondHand = el('secondHand');
+
+                if (hourHand) hourHand.style.transform = `rotate(${hourAngle}deg)`;
+                if (minuteHand) minuteHand.style.transform = `rotate(${minuteAngle}deg)`;
+                if (secondHand) {
+                    // Smooth second hand movement
+                    if (seconds === 0) {
+                        secondHand.style.transition = 'none';
+                    } else {
+                        secondHand.style.transition = 'transform 0.1s ease-out';
+                    }
+                    secondHand.style.transform = `rotate(${secondAngle}deg)`;
+                }
+            }
+
+            // Event listeners
+            setupEventListeners() {
+                const form      = el('reminderForm');
+                const modal     = el('notificationModal');
+                const closeBtn  = document.querySelector('.close');
+                const dismissBtn    = el('dismissBtn');
+                //
+                const speakTimeBtn  = el('speak-time'); 
+                const languageBox   = el('lang-Checkbox');
+                //
+                const reminderShow  = el('reminderShow');
+                const reminderForm  = el('reminderForm');
+                const reminderMess  = el('reminderMessage'); //reminderMessage
+                //
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.addReminder();
+                });
+
+                closeBtn.addEventListener('click', () => {
+                    this.closeModal();
+                });
+
+                dismissBtn.addEventListener('click', () => {
+                    this.closeModal();
+                });
+
+                speakTimeBtn.addEventListener('click', () => {
+                    const submit = document.getElementsByName('tspeak');
+                    for ( let i=0; i < submit.length; i++ ) {
+                        if ( submit[i].checked )  {
+                            svalue = submit[i].value;
+                            var spktext =  '* Speak clock every ' + svalue + "' minutes." ;
+                            if ( svalue === 'no' ) spktext = 'speak silence!';
+                            this.showSuccessMessage(spktext);
+                            speakLbl.title = spktext
+                            //console.log(spktext);
+                        }
+                    }
+                });
+
+                languageBox.addEventListener('click', () => {
+                    llanguage = 'vi-VN';
+                    if ( languageBox.checked ) llanguage = 'en-US';
+                    languageBox.title = llanguage + ' - ' + languageBox.checked;
+
+                    el('lang-Label').innerText = llanguage;
+                    this.updateClock();
+
+                    svalue = 60; 
+                    let spktext = 'speak every 1 hour : 60m!';
+                    this.showSuccessMessage(spktext);
+                    speakLbl.title = spktext
+                });
+
+                reminderShow.addEventListener('click', () => {
+                    if ( reminderForm.style.display == 'block') {
+                        reminderForm.style.display  = 'none';
+                        reminderShow.style.color    = 'blue';
+                        reminderShow.innerHTML      = 'Set Reminder (wpa.v15.10.2025)'
+                        reminderMess.value = '';
+                    } else {
+                        reminderForm.style.display  = 'block';
+                        reminderShow.style.color    = 'black';
+                        reminderShow.style.cursor   = 'pointer';
+                        reminderShow.innerText      = 'Reminder (add click-v24.11.2025)'
+                    }
+
+                });
+
+                window.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        this.closeModal();
+                    }
+                });
+            }
+
+            // Reminder functionality
+            addReminder() {
+                const timeInput = el('reminderTime');
+                const messageInput = el('reminderMessage');
+                if (!timeInput.value) { timeInput.value ="00:01" };
+                
+                const time = timeInput.value; 
+                const message =  messageInput.value.trim();
+                if (!time || !message) {
+                    alert('Please fill in both time and message fields.');
+                    return;
+                }
+
+                // Check if reminder time is in the future
+                const now = new Date();
+                const reminderDate = new Date();
+                const [hours, minutes] = time.split(':');
+                reminderDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
+                // If the time has already passed today, set it for tomorrow
+                if (reminderDate <= now) {
+                    reminderDate.setDate(reminderDate.getDate() + 1);
+                }
+
+                const reminder = {
+                    id: Date.now(),
+                    time: time,
+                    message: message,
+                    timestamp: reminderDate.getTime(),
+                    language: llanguage,
+                    triggered: false
+                };
+
+                this.reminders.push(reminder);
+                this.saveReminders();
+                this.renderReminders();
+
+                // Clear form
+                timeInput.value = '';
+                messageInput.value = '';
+
+                // Show success message
+                this.showSuccessMessage('Reminder added successfully!');
+            }
+
+            deleteReminder(id) {
+                this.reminders = this.reminders.filter(reminder => reminder.id !== id);
+                this.saveReminders();
+                this.renderReminders();
+            }
+
+            renderReminders() {
+                const remindersList = el('remindersList');
+                if (this.reminders.length === 0) {
+                    remindersList.innerHTML = '<li class="empty-reminders">No active reminders</li>';
+                    el('444').style.display="none";
+                    return;
+                }
+                // Sort reminders by time
+                const sortedReminders = [...this.reminders].sort((a, b) => a.timestamp - b.timestamp);
+                el('444').style.display='inline-flex';
+                remindersList.innerHTML = sortedReminders.map(reminder => `
+                    <li class="reminder-item">
+                        <div class="reminder-info">
+                            <div class="reminder-time">${reminder.time}</div>
+                            <div class="reminder-message">${reminder.message}</div>
+                            </div>
+                            <button class="delete-btn" onclick="app.deleteReminder(${reminder.id})"> ❌ del</button>
+                    </li>
+                `).join('');
+                // add events on click reminder
+                document.querySelectorAll('.reminder-message').forEach(mess => {
+                    mess.addEventListener('click', (ev)=>{
+                        const evmess = ev.target.innerText;
+                        console.log( '>> want to speak reminder.click >>' );
+                        if ( evmess ) this.sspeak( evmess );
+                    });
+                });
+            }
+
+            checkReminders() {
+                const now       = new Date();
+                const hhour     = now.getHours().toString().padStart(2, '0');
+                const mmunite   = now.getMinutes().toString().padStart(2, '0');
+                const ssecond   = now.getSeconds().toString().padStart(2, '0');
+                const currentTime = hhour + ':' + mmunite ;
+                // 1. speak time each 5 minute /
+                if ( !svalue ) svalue = 1;
+                //console.log( mmunite % svalue, " | svalue= " + svalue )
+                if ( mmunite % svalue == 0 && ssecond < 10  ) this.getSpeak( hhour, mmunite ); 
+
+                // 2. get reminder /
+                this.reminders.forEach(reminder => {
+                    if (!reminder.triggered && reminder.time === currentTime) {
+                        // show reminder.message //
+                        this.triggerReminder(reminder);
+                        if ( ssecond > 40 ) reminder.triggered = true;
+                        // Save //
+                        this.saveReminders();
+                    }
+                });
+                // 3. Clean up old triggered reminders (older than 1 minute)
+                const oneMinuteAgo = now.getTime() - (60*60*1000 * 24*700); //1day//
+                this.reminders = this.reminders.filter(reminder => 
+                    !reminder.triggered || reminder.timestamp > oneMinuteAgo
+                );
+                this.saveReminders();
+            }
+
+            getSpeak( hhour, mmunite ) {
+                if ( mmunite < 1 ) {
+                                                 stext = `bây giờ là ${hhour} giờ.`;
+                    if ( llanguage === 'en-US' ) stext = `time is ${hhour} o'clock.`;
+                } else {
+                                                 stext = `bây giờ là ${hhour} giờ ${mmunite} phút.`;
+                    if ( llanguage === 'en-US' ) stext = `time is ${hhour} ${mmunite} minutes.`;
+                }
+                // speak time //
+                if ( stext ) {
+                    this.showSuccessMessage(stext);
+                    this.sspeak(stext);
+                    stext = "";
+                }
+            }
+
+            sspeak(text, language) {
+                //if ( tts.speaking ) tts.cancel();
+                const utter = new window.SpeechSynthesisUtterance(text);
+                utter.rate = 0.9;
+                utter.lang = llanguage;
+                if ( language ) utter.lang = language;
+                tts.speak(utter);
+                //console.log('++ Say :: ' + text);
+                speakLbl.title = svalue + ' => speak: ' + text ;
+            }
+
+            triggerReminder(reminder) {
+                // Play notification sound (if supported)
+                this.playNotificationSound();
+                
+                // Show modal notification
+                this.showNotification(reminder);
+                
+                // (if permission granted) Show browser notification 
+                this.showBrowserNotification(reminder.message);
+            }
+
+            showNotification(reminder) {
+                const messageElement = el('notificationMessage');
+                const modal          = el('notificationModal');
+                const muteBtn        = el('muteBtn');
+                // 1.render message //
+                messageElement.innerHTML = reminder.message;
+                modal.style.display      = 'block';
+
+                // 2.add Mute tts //
+                muteBtn.addEventListener('click', () => {
+                    reminder.triggered = true;
+                    tts.cancel();
+                });
+                // 3.speech message //
+                this.sspeak(reminder.message, reminder.lang);
+            }
+
+            closeModal() {
+                const modal = el('notificationModal');
+                modal.style.display = 'none';
+            }
+
+            playNotificationSound() {
+                // Create a simple beep sound using Web Audio API
+                try {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = 800;
+                    oscillator.type = 'sine';
+                    
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.5);
+                } catch (error) {
+                    console.log('Audio notification not supported');
+                }
+            }
+
+            showBrowserNotification(message) {
+                if ('Notification' in window) {
+                    if (Notification.permission === 'granted') {
+                        new Notification('Reminder Alert!', {
+                            body: message,
+                            icon: 'https://public-frontend-cos.metadl.com/mgx/img/favicon.png'
+                        });
+                    } else if (Notification.permission !== 'denied') {
+                        Notification.requestPermission().then(permission => {
+                            if (permission === 'granted') {
+                                new Notification('Reminder Alert!', {
+                                    body: message,
+                                    icon: 'https://public-frontend-cos.metadl.com/mgx/img/favicon.png'
+                                });
+                            }
+                        });
+                    }
+                }
+            }
+
+            showSuccessMessage(message) {
+                // Create a temporary success message
+                const successDiv = document.createElement('div');
+                successDiv.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: #27ae60;
+                    color: white;
+                    padding: 15px 20px;
+                    border-radius: 8px;
+                    z-index: 1001;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                    animation: slideInRight 0.3s ease;
+                `;
+                successDiv.textContent = message;
+                
+                document.body.appendChild(successDiv);
+                
+                setTimeout(() => {
+                    successDiv.style.animation = 'slideOutRight 0.3s ease';
+                    setTimeout(() => {
+                        document.body.removeChild(successDiv);
+                    }, 3000);
+                }, 3000);
+            }
+
+            // Local storage methods
+            saveReminders() {
+                localStorage.setItem('clockReminders', JSON.stringify(this.reminders));
+            }
+
+            loadReminders() {
+                const stored = localStorage.getItem('clockReminders');
+                return stored ? JSON.parse(stored) : [];
+            }
+        }
+    </script>
+
+<!-- add contents -> reminder Messages -->
+<script>
+    // alert(new Date().getTime());
+const cont111 = `Content: You are able to do some tasks from the "Admin page" like.
+1- Edit, hightlight text contents or.
+2- Delete, remove single post or.
+3- Search post by Title or by Category.
+4- Reading, Speak text contents of your Post.
+5- Do "Backup" posts, Restore Posts from .json file.
+6- Use "Sample Posts", (Choose eng /vn language) for samples learning.
+This Blog workes as Notes, Notebook, where you want to write down your remarkble idea from your learning path;
+even though Cooking recipe, Shopping list, Finacial invest stock, programing idea,,,. all the posts' data were stored on your own devices so they are your private.`;
+
+const cont222 = `Loài người bị gì che,
+    Bị trói buộc cái gì.
+    Phải chịu sanh đọa xứ,
+    Bị đóng cửa Phạm thiên.
+    Phẫn nộ và vọng ngữ,
+    Gian manh và lừa đảo.
+    Hà tiện và quá mạn,
+    Tật đố và dục cầu.
+    Nghi ngờ và hại người,
+    Tham, sân, si kiêu mạn.
+    Những tánh này trói buộc,
+    Khiến con người xú uế.
+    Phải chịu sanh đọa xứ,
+    Bị đóng cửa Phạm thiên.`;
+
+const cont333 = `Chính tại Phạm thiên giới,
+    Này Ngươi Bà-la-môn.
+    Ai bỏ ngã, ngã sở,
+    Tâm chuyên chú nhứt cảnh.
+    Tu tập đại bi tâm,
+    Thoát ly mọi xú uế.
+    Lánh xa mọi tà dục,
+    An trú ở nơi đây.
+    Để chứng quả bất tử.
+    Chính tại Phạm thiên giới.
+    Nếu từ bỏ dục vọng,
+    Mà kẻ phàm say đắm.
+    Tinh cần và cương quyết,
+    Vững chắc trong nhẫn lực.
+    Đó là con đường chánh,
+    Con đường hướng vô thượng.
+    Được Thiện nhân hộ trì,
+    Sanh lên cõi Phạm thiên.`;
+
+    el('000').addEventListener('click', ()=>{
+        el('reminderMessage').value = '';
+    });
+    el('111').addEventListener('click', ()=>{
+        el('reminderMessage').value = cont111;
+    });
+    el('222').addEventListener('click', ()=>{
+        el('reminderMessage').value = cont222;
+    });
+    el('333').addEventListener('click', ()=>{
+        el('reminderMessage').value = cont333;
+    });
+    el('444').addEventListener('click', ()=>{
+        let year = (new Date).getFullYear();
+        el("reminderShow").title = `@${year}, All Right Reserved.`
+        if (tts.speaking) { 
+            tts.cancel(); 
+            el('reminderMessage').value = 'speaking is stopped.';
+        };
+    });
+
+    el('clock').addEventListener('click', ()=>{
+        const ttext = el('clock').innerText;
+        speakMe( ttext );
+        //console.log( ttext, llanguage );
+    });
+
+    el('date').addEventListener('click', ()=>{
+        const ttext = el('date').innerText;
+        speakMe( ttext );
+        //console.log( ttext, llanguage );
+    });
+
+    function speakMe(text) {
+        if ( tts.speaking ) tts.cancel();
+        if ( !llanguage ) llanguage = "en-US";
+        const utter = new window.SpeechSynthesisUtterance(text);
+        utter.rate = 0.9;
+        utter.lang = llanguage;
+        tts.speak(utter);      
+        utter.onstart = (ev) => { 
+            console.log(ev.message, '++ Speak :: ' + text);
+        };
+        utter.onend = (evt)=> { 
+            console.log(evt.message, '++ Stoped :: ' + text);
+        }
+    };
+
+</script>
+
+</body>
+</html>
